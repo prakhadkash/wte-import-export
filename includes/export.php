@@ -24,7 +24,7 @@ function wptravelengine_ie_post_taxonomy( $post ) {
 	if ( empty( $taxonomies ) ) {
 		return;
 	}
-	$terms = wp_get_object_terms( $post->ID, $taxonomies );
+	$terms = wp_get_object_terms( $post->ID, $taxonomies, array( 'hide_empty' => 'trip-packages' !== $post->post_type ) );
 
 	$_terms = array();
 	foreach ( (array) $terms as $term ) {
@@ -95,7 +95,9 @@ function wptravelengine_ie_item_data( $post ) {
 		foreach ( $c_meta as $meta ) {
 			$commentmeta[ $meta_key ] = $meta_value;
 		}
+		$export_comments[ $index ]['commentmeta'] = $commentmeta;
 	}
+	$item->comments = $export_comments;
 
 	return $item;
 }
