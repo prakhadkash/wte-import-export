@@ -197,7 +197,7 @@ add_action(
 					// Begin Loop.
 					foreach ( $posts as $post ) {
 						setup_postdata( $post );
-						$item = wptravelengine_item_data( $post );
+						$item = wptravelengine_ie_item_data( $post );
 
 						$items[] = $item;
 					}
