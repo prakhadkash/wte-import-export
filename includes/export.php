@@ -33,7 +33,6 @@ function wptravelengine_ie_post_taxonomy( $post ) {
 			'slug'     => $term->slug,
 			'name'     => $term->name,
 		);
-		echo "\t\t<category domain=\"{$term->taxonomy}\" nicename=\"{$term->slug}\">" . wxr_cdata( $term->name ) . "</category>\n";
 	}
 	return $_terms;
 }
