@@ -50,11 +50,21 @@ function wptravelengine_ie_item_data( $post ) {
 	$item->post_status    = $post->post_status;
 	$item->attachment_url = wp_get_attachment_url( $post->ID );
 
+	$item->packages = array();
+
 	// Post Meta.
 	$postmeta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->postmeta WHERE post_id = %d", $post->ID ) );
 
 	$meta = array();
 	foreach ( $postmeta as $_meta ) {
+		if ( 'packages_ids' === $_meta->meta_key ) {
+			$packages_ids = maybe_unserialize( $_meta->meta_value );
+			if ( is_array( $packages_ids ) ) {
+				foreach ( $packages_ids as $package_id ) {
+					$item->packages[] = wptravelengine_ie_item_data( get_post( $package_id ) );
+				}
+			}
+		}
 		$meta[ $_meta->meta_key ] = $_meta->meta_value;
 	}
 	$item->meta = $meta;
