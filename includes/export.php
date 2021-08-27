@@ -17,18 +17,41 @@ if ( ! function_exists( 'wxr_site_url' ) ) {
 	}
 }
 
-function wptravelengine_item_data( $post ) {
+function wptravelengine_ie_post_taxonomy( $post ) {
+	// $post = get_post();
+
+	$taxonomies = get_object_taxonomies( $post->post_type );
+	if ( empty( $taxonomies ) ) {
+		return;
+	}
+	$terms = wp_get_object_terms( $post->ID, $taxonomies );
+
+	$_terms = array();
+	foreach ( (array) $terms as $term ) {
+		$_terms[] = array(
+			'taxonomy' => $term->taxonomy,
+			'slug'     => $term->slug,
+			'name'     => $term->name,
+		);
+		echo "\t\t<category domain=\"{$term->taxonomy}\" nicename=\"{$term->slug}\">" . wxr_cdata( $term->name ) . "</category>\n";
+	}
+	return $_terms;
+}
+
+function wptravelengine_ie_item_data( $post ) {
 	global $wpdb;
 	$item = new \stdClass();
 
-	$item->ID          = (int) $post->ID;
-	$item->title       = $post->post_title;
-	$item->content     = $post->post_content;
-	$item->excerpt     = $post->post_excerpt;
-	$item->is_sticky   = is_sticky( $post->ID ) ? 1 : 0;
-	$item->post_type   = $post->post_type;
-	$item->post_status = $post->post_status;
+	$item->ID             = (int) $post->ID;
+	$item->title          = $post->post_title;
+	$item->content        = $post->post_content;
+	$item->excerpt        = $post->post_excerpt;
+	$item->is_sticky      = is_sticky( $post->ID ) ? 1 : 0;
+	$item->post_type      = $post->post_type;
+	$item->post_status    = $post->post_status;
+	$item->attachment_url = wp_get_attachment_url( $post->ID );
 
+	// Post Meta.
 	$postmeta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->postmeta WHERE post_id = %d", $post->ID ) );
 
 	$meta = array();
@@ -36,6 +59,34 @@ function wptravelengine_item_data( $post ) {
 		$meta[ $_meta->meta_key ] = $_meta->meta_value;
 	}
 	$item->meta = $meta;
+
+	// Comment Meta.
+	$_comments = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->comments WHERE comment_post_ID = %d AND comment_approved <> 'spam'", $post->ID ) );
+	$comments  = array_map( 'get_comment', $_comments );
+
+	$item->terms = wptravelengine_ie_post_taxonomy( $post );
+
+	$export_comments = array();
+	foreach ( $comments as $index => $c ) {
+		$export_comments[ $index ]['comment_id']           = (int) $c->comment_ID;
+		$export_comments[ $index ]['comment_author']       = $c->comment_author;
+		$export_comments[ $index ]['comment_author_email'] = $c->comment_author_email;
+		$export_comments[ $index ]['comment_author_url']   = $c->comment_author_url;
+		$export_comments[ $index ]['comment_author_IP']    = $c->comment_author_IP;
+		$export_comments[ $index ]['comment_date']         = $c->comment_date;
+		$export_comments[ $index ]['comment_date_gmt']     = $c->comment_date_gmt;
+		$export_comments[ $index ]['comment_content']      = $c->comment_content;
+		$export_comments[ $index ]['comment_approved']     = $c->comment_approved;
+		$export_comments[ $index ]['comment_type']         = $c->comment_type;
+		$export_comments[ $index ]['comment_parent']       = (int) $c->comment_parent;
+		$export_comments[ $index ]['user_id']              = (int) $c->user_id;
+
+		$c_meta      = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->commentmeta WHERE comment_id = %d", $c->comment_ID ) );
+		$commentmeta = array();
+		foreach ( $c_meta as $meta ) {
+			$commentmeta[ $meta_key ] = $meta_value;
+		}
+	}
 
 	return $item;
 }
