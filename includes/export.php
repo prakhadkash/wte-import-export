@@ -19,6 +19,9 @@ if ( ! function_exists( 'wxr_site_url' ) ) {
 
 function wptravelengine_ie_post_taxonomy( $post ) {
 	// $post = get_post();
+	if ( is_null( $post ) ) {
+		return;
+	}
 
 	$taxonomies = get_object_taxonomies( $post->post_type );
 	if ( empty( $taxonomies ) ) {
@@ -39,6 +42,9 @@ function wptravelengine_ie_post_taxonomy( $post ) {
 
 function wptravelengine_ie_item_data( $post ) {
 	global $wpdb;
+	if ( is_null( $post ) ) {
+		return;
+	}
 	$item = new \stdClass();
 
 	$item->ID             = (int) $post->ID;
@@ -93,7 +99,7 @@ function wptravelengine_ie_item_data( $post ) {
 		$c_meta      = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->commentmeta WHERE comment_id = %d", $c->comment_ID ) );
 		$commentmeta = array();
 		foreach ( $c_meta as $meta ) {
-			$commentmeta[ $meta_key ] = $meta_value;
+			$commentmeta[ $meta->meta_key ] = $meta->meta_value;
 		}
 		$export_comments[ $index ]['commentmeta'] = $commentmeta;
 	}
