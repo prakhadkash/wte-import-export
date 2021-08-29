@@ -17,6 +17,39 @@ if ( ! function_exists( 'wxr_site_url' ) ) {
 	}
 }
 
+function wptravelengine_ie_pricing_categories() {
+	global $wpdb;
+	$terms = get_terms(
+		array(
+			'taxonomy'   => 'trip-packages-categories',
+			'hide_empty' => false,
+		)
+	);
+
+	$primary_category = get_option( 'primary_pricing_category', 0 );
+
+	$_terms = array();
+	if ( is_array( $terms ) ) {
+		foreach ( $terms as $term ) {
+			$_term  = array(
+				'taxonomy'   => $term->taxonomy,
+				'slug'       => $term->slug,
+				'name'       => $term->name,
+				'is_primary' => $primary_category == $term->term_id,
+			);
+			$t_meta = $wpdb->get_results( $wpdb->prepare( "SELECT * FROM $wpdb->termmeta WHERE term_id = %d", $term->term_id ) );
+			if ( is_array( $t_meta ) ) {
+				foreach ( $t_meta as $meta ) {
+					$_term['meta'][ $meta->meta_key ] = $meta->meta_value;
+				}
+			}
+			$_terms[] = $_term;
+		}
+	}
+
+	return $_terms;
+}
+
 function wptravelengine_ie_post_taxonomy( $post ) {
 	// $post = get_post();
 	if ( is_null( $post ) ) {
@@ -27,7 +60,13 @@ function wptravelengine_ie_post_taxonomy( $post ) {
 	if ( empty( $taxonomies ) ) {
 		return;
 	}
-	$terms = wp_get_object_terms( $post->ID, $taxonomies, array( 'hide_empty' => 'trip-packages' !== $post->post_type ) );
+
+	$terms = wp_get_object_terms( $post->ID, $taxonomies, array( 'hide_empty' => false ) );
+
+	if ( in_array( 'trip-packages-categories', $taxonomies ) ) {
+		error_log( print_r( $terms, true ) );
+
+	}
 
 	$_terms = array();
 	foreach ( (array) $terms as $term ) {
@@ -188,13 +227,14 @@ add_action(
 
 			$export_data = new \stdClass();
 
-			$export_data->title             = get_bloginfo_rss( 'name' );
-			$export_data->link              = get_bloginfo_rss( 'url' );
-			$export_data->description       = get_bloginfo_rss( 'description' );
-			$export_data->pubDate           = gmdate( 'D, d M Y H:i:s +0000' );
-			$export_data->language          = get_bloginfo_rss( 'language' );
-			$export_data->{'base_site_url'} = wxr_site_url();
-			$export_data->{'base_blog_url'} = get_bloginfo_rss( 'url' );
+			$export_data->title              = get_bloginfo_rss( 'name' );
+			$export_data->link               = get_bloginfo_rss( 'url' );
+			$export_data->description        = get_bloginfo_rss( 'description' );
+			$export_data->pubDate            = gmdate( 'D, d M Y H:i:s +0000' );
+			$export_data->language           = get_bloginfo_rss( 'language' );
+			$export_data->{'base_site_url'}  = wxr_site_url();
+			$export_data->{'base_blog_url'}  = get_bloginfo_rss( 'url' );
+			$export_data->pricing_categories = wptravelengine_ie_pricing_categories();
 
 			if ( $post_ids ) {
 				/**
@@ -223,8 +263,6 @@ add_action(
 				$export_data->items = $items;
 
 				echo json_encode( $export_data, JSON_PRETTY_PRINT );
-
-				// error_log( json_encode( $export_data, JSON_PRETTY_PRINT ) );
 			}
 
 			die;
