@@ -562,8 +562,6 @@ class Import extends \WP_Importer {
 			$this->process_termmeta( $term, $id['term_id'] );
 		}
 
-		error_log( print_r( $this->processed_pricing_categories, true ) );
-
 		unset( $this->pricing_categories );
 	}
 
@@ -688,7 +686,7 @@ class Import extends \WP_Importer {
 			$new_package_id = $this->process_single_post( $package );
 			if ( $new_package_id ) {
 				$package_catgories   = get_post_meta( $new_package_id, 'package-categories', true );
-				$_package_categories = $package_catgories;
+				$_package_categories = array();
 				if ( is_array( $package_catgories ) ) {
 					foreach ( $package_catgories as $key => $value ) {
 						if ( is_array( $value ) ) {
@@ -699,6 +697,7 @@ class Import extends \WP_Importer {
 								$_category_id = $this->processed_pricing_categories[ $c_id ];
 								if ( 'c_ids' === $key ) {
 									$_package_categories[ $key ][ $_category_id ] = $_category_id;
+									continue;
 								}
 								$_package_categories[ $key ][ $_category_id ] = $_value;
 							}
