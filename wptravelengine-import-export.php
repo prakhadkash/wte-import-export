@@ -18,5 +18,9 @@ define( 'WPTRAVELENGINE_IMPORT_EXPORT_FILE', __FILE__ );
 define( 'WPTRAVELENGINE_IMPORT_EXPORT_ABSPATH', __DIR__ . '/' );
 
 
+if ( ! class_exists( '\WP_Importer' ) ) {
+	require ABSPATH . 'wp-admin/includes/class-wp-importer.php';
+}
+
 require WPTRAVELENGINE_IMPORT_EXPORT_ABSPATH . 'includes/export.php';
 require WPTRAVELENGINE_IMPORT_EXPORT_ABSPATH . 'includes/import.php';

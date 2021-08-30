@@ -32,6 +32,7 @@ function wptravelengine_ie_pricing_categories() {
 	if ( is_array( $terms ) ) {
 		foreach ( $terms as $term ) {
 			$_term  = array(
+				'term_id'    => $term->term_id,
 				'taxonomy'   => $term->taxonomy,
 				'slug'       => $term->slug,
 				'name'       => $term->name,
